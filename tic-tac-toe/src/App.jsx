@@ -12,7 +12,7 @@ const Square = ({children, isSelected, updateBoard, index}) => {
   const className = `square ${isSelected ? 'is-selected':''}`
 
   const handleClick = () => {
-    updateBoard()
+    updateBoard(index)
   }
 
   return (
@@ -23,15 +23,65 @@ const Square = ({children, isSelected, updateBoard, index}) => {
 }
 
 
+const WINNER_COMBOS = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6],
+]
+
+
 function App() {
   const [board, setBoard] = useState(
     Array(9).fill(null)
     )
     const [turn, setTurn] = useState(TURNS.X)
 
-    const updateBoard = () => {
+    const [winner, setWinner] = useState(null)
+
+    const checkWinner = (boardToCheck) => {
+      for (const combo of WINNER_COMBOS){
+        const [a, b, c] = combo
+        if (
+          boardToCheck[a] &&
+          boardToCheck[a] == boardToCheck[b] &&
+          boardToCheck[a] == boardToCheck[c]
+        ) {
+          return boardToCheck[a]
+        }
+      }
+      // if there is no winner 
+      return null
+    }
+
+    const resetGame = () => {
+      setBoard(Array(9).fill(null))
+      setTurn(TURNS.X)
+      setWinner(null)
+       }
+
+    const updateBoard = (index) => {
+      console.log(index)
+      // if it is filled, don't write nothing
+      if (board[index] || winner) return
+      // update the board
+      const newBoard = [...board]
+      newBoard[index] = turn
+      setBoard(newBoard)
+      // change turn
       const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X
       setTurn(newTurn)
+      // check if there is new winner
+      const newWinner = checkWinner(newBoard)
+      if (newWinner) {
+        setWinner(newWinner)
+        console.log(newWinner)
+        console.log(winner)
+      }
     }
 
   return (
@@ -56,6 +106,27 @@ function App() {
       <Square isSelected={turn === TURNS.X}>{TURNS.X}</Square>
       <Square isSelected={turn === TURNS.O}>{TURNS.O}</Square>
     </section>
+    {
+      winner != null && (
+        <section className='winner'>
+          <div className='text'>
+            <h2>
+              {
+                winner === false 
+                ? 'empate'
+                : 'Ganó:'
+              }
+              </h2>
+              <header className='win'>
+              {winner && <Square>{winner}</Square>}
+              </header>
+              <footer>
+                <button onClick={resetGame}>Empezar de nuevo</button>
+              </footer>
+          </div>
+        </section>
+      )
+    }
   </main>
   )
 }
